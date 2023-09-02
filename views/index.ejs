@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Applovin Ad Unit Creator</title>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+        <style>
+            .copy-button {
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                color: #007bff; /* You can choose the color */
+                margin-left: auto; /* This will push the button to the right end */
+            }
+
+            .copy-button:focus {
+                outline: none;
+            }
+
+            .loader-container {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                display: none;
+            }
+            .loader {
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #3498db;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 2s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+<body>
+    <div class="container mt-5">
+        <h2>Create Ad Units</h2>
+
+        <% errors.forEach(function(error) { %>
+            <div class="alert alert-danger">
+                <%= error %>
+            </div>
+        <% }); %>
+
+        <div id="loader-container" class="loader-container">
+            <div class="loader"></div>
+        </div>
+
+        <form action="/" method="post" id="adUnitForm">
+            <label for="apiToken">AppLovin API Token:</label>
+            <select name="apiToken" id="apiToken">
+                <option value="MNwT5JEdoz65Dmo00ACr8rc4VemMdiK0gAwEONs2V5rV9H5azT8TEWPi0q3AF6aSE9K3lSVlLuSHmtDuAQZTpW">MobileArts - Client Apps</option>
+                <option value="">SmartTech - Branded Apps</option>
+            </select>
+            <div class="form-group">
+                <label for="name">App ID & Name:</label>
+                <input type="text" class="form-control" name="name"  placeholder="ex: 4573 Name Of application" required>
+            </div>
+            <div class="form-group">
+                <label for="package_name">Package Name:</label>
+                <input type="text" class="form-control" name="package_name" required>
+            </div>
+            <div class="form-group">
+                <label for="platform">Platform:</label>
+                <div>
+                    <input type="radio" id="android" name="platform" value="android" checked>
+                    <label for="android">Android</label>
+                    <input type="radio" id="ios" name="platform" value="ios">
+                    <label for="ios">iOS</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="developerUsername">Dev GitHub Username:</label>
+                <select name="developerUsername" id="developerUsername" class="form-control">
+                    <option value="none">None</option>
+                    <option value="HadiKhansaa">Hadi AlKhansa</option>
+                    <option value="housseinch17">Houssein Chahine</option>
+                    <option value="Hani-kanaan">Hani Kanaan</option>
+                    <option value="farahassaf-25">Farah Assaf</option>
+                    <option value="ali-nooreddine">Ali Noureddine</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Ad Units</button>
+        </form>
+        
+        <!-- Generated Units Dialog -->
+        <div class="modal" tabindex="-1" id="adUnitsModal">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Generated Ad Units</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table" id="adUnitsTable">
+                            <thead>
+                                <tr>
+                                    <th>Platform</th>
+                                    <th>App ID</th>
+                                    <th>Name</th>
+                                    <th>Ad Format</th>
+                                    <th>Unit ID</th>
+                                    <th>OneSignal ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adUnitsTBody">
+                                <% generated_ad_units.forEach(function(ad_unit) { %>
+                                    <tr>
+                                        <td>
+                                            <% if (ad_unit.platform == 'android') { %>
+                                                <img src="/assets/images/android_icon.webp" alt="Android" width="25" />
+                                            <% } else { %>
+                                                <img src="/assets/images/ios_icon.png" alt="IOS" width="25" />
+                                            <% } %>
+                                        </td>
+                                        <td><%= ad_unit.package_name %></td>
+                                        <td><%= ad_unit.name %></td>
+                                        <td><%= ad_unit.ad_format %></td>
+                                        <td><%= ad_unit.id %></td>
+                                        <td>
+                                            <% if (ad_unit.hasOwnProperty('one_signal_id')) { %>
+                                                <%= ad_unit.one_signal_id %>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (ad_unit.hasOwnProperty('github_repo_url')) { %>
+                                                <%= ad_unit.github_repo_url %>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <a href="/download_xml" id="downloadXML" class="btn btn-primary">Download XML</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <br/>
+        <!-- Search Input -->
+        <input type="text" id="searchInput" placeholder="Search by name, App ID or Ad Unit ID" class="form-control mb-3">
+        <!-- Table -->
+        <div id="table-loader-container" class="loader-container">
+            <div class="loader"></div>
+        </div>
+        <table class="table table-bordered" id="adUnitTable">
+            <thead>
+                <tr>
+                    <th>Platform</th>
+                    <th>App ID</th>
+                    <th>Name</th>
+                    <th>Ad Unit Format</th>
+                    <th>Ad Unit ID</th>
+                </tr>
+            </thead>
+            <tbody id="adUnitTBody"></tbody>
+        </table>
+    
+    </div>
+
+    <!-- Modal -->
+<div class="modal fade" id="adUnitModal" tabindex="-1" role="dialog" aria-labelledby="adUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="adUnitModalLabel">Ad Units</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-bordered">
+              <thead>
+                  <tr>
+                      <th>Platform</th>
+                      <th>App ID</th>
+                      <th>Name</th>
+                      <th>Ad Unit Format</th>
+                      <th>Ad Unit ID</th>
+                  </tr>
+              </thead>
+              <tbody id="modalAdUnitTBody"></tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="downloadXMLButton">Download XML</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+    window.addEventListener('load', function() {
+        if (document.getElementById('adUnitsTBody').childElementCount > 0) {
+            $('#adUnitsModal').modal('show');
+        }
+    });
+
+    function showAdUnits(generated_ad_units) {
+        const tbody = document.getElementById('adUnitsTBody');
+        tbody.innerHTML = "";
+        generated_ad_units.forEach(adUnit => {
+            let row = tbody.insertRow();
+            let cell1 = row.insertCell(0);
+            cell1.innerHTML = adUnit.platform === 'android' ? '<img src="/assets/images/android_icon.webp" alt="Android" width="25" />' : 'iOS';
+            let cell2 = row.insertCell(1);
+            cell2.innerHTML = adUnit.package_name;
+            let cell3 = row.insertCell(2);
+            cell3.innerHTML = adUnit.name;
+            let cell4 = row.insertCell(3);
+            cell4.innerHTML = adUnit.ad_format;
+            let cell5 = row.insertCell(4);
+            cell5.innerHTML = adUnit.id;
+        });
+        $('#adUnitsModal').modal('show');
+    }
+
+    document.getElementById('adUnitForm').addEventListener('submit', function() {
+        document.getElementById('loader-container').style.display = 'flex';
+        fetch('/', {
+            // Fetch logic here...
+        })
+        .then(data => {
+            showAdUnits(data);
+            const xmlContent = generateXML(data);
+            const blob = new Blob([xmlContent], { type: 'application/xml' });
+            const downloadLink = document.getElementById('downloadXML');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'ad_config.xml';
+            downloadLink.click();
+        });
+    });
+
+    function generateXML(adUnits) {
+        let xml = '<resources>\n';
+        adUnits.forEach(adUnit => {
+            xml += `    <string name="applovin_${adUnit.ad_format.toLowerCase()}">${adUnit.id}</string>\n`;
+        });
+        xml += '</resources>';
+        return xml;
+    }
+
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        var input, filter, table, tr, tdName, tdId, tdPackageName, i;
+        input = document.getElementById('searchInput');
+        filter = input.value.split('.'); // Splitting the input by dots
+        table = document.getElementById('adUnitTable'); // Change to your table's ID
+        tr = table.getElementsByTagName('tr');
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            tdName = tr[i].getElementsByClassName('ad-name')[0];
+            tdId = tr[i].getElementsByClassName('ad-id')[0];
+            tdPackageName = tr[i].getElementsByClassName('ad-package-name')[0];
+
+            // Function to check if any part of the filter matches the content
+            var matchesFilter = function(content) {
+                if (!content) return false;
+                content = content.innerHTML.toUpperCase();
+                for (var j = 0; j < filter.length; j++) {
+                    if (content.indexOf(filter[j].toUpperCase()) === -1) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            if (matchesFilter(tdName) || matchesFilter(tdId) || matchesFilter(tdPackageName)) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    });
+
+
+
+    function loadAdUnits() {
+        document.getElementById('table-loader-container').style.display = 'flex';
+        const apiToken = document.getElementById('apiToken').value;
+        
+        fetch('/get_ad_units?apiToken=' + apiToken)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('table-loader-container').style.display = 'none';
+                const tbody = document.getElementById('adUnitTBody');
+                tbody.innerHTML = "";
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    data.forEach(adUnit => {
+                        let row = tbody.insertRow();
+                        let cellPlatfrom = row.insertCell(0);
+                        
+                        let cellPackageName = row.insertCell(1);
+                        cellPackageName.className = 'ad-package-name';
+
+                        let cellAdName = row.insertCell(2);
+                        cellAdName.className = 'ad-name';
+
+                        let cellAdFormat = row.insertCell(3);
+                        let cellAdUnitId = row.insertCell(4);
+                        cellAdUnitId.className = 'ad-id';
+
+                        if (adUnit.platform.toLowerCase() === 'android') {
+                            // If the platform is Android, set the cell content to the Android icon
+                            cellPlatfrom.innerHTML = '<img src="/assets/images/android_icon.webp" alt="Android" width="30" />';
+                        } else {
+                            cellPlatfrom.innerHTML = '<img src="/assets/images/ios_icon.png" alt="Android" width="30" />';
+                        }
+                        cellPackageName.innerHTML = adUnit.package_name;
+                        cellAdName.innerHTML = adUnit.name;
+
+                        cellAdFormat.innerHTML = adUnit.ad_format;
+                        
+                        // Adding a button with a clipboard icon (you can replace with an actual icon)
+                        let button = document.createElement('button');
+                        button.className = 'copy-button';
+                        button.innerHTML = '📋'; // Clipboard emoji as the button's content
+                        button.onclick = function() {
+                            navigator.clipboard.writeText(adUnit.id).then(() => {
+                                alert('Ad unit ID copied to clipboard!');
+                            }).catch(err => {
+                                alert('Failed to copy text: ', err);
+                            });
+                        };
+
+                        cellAdUnitId.innerHTML = adUnit.id + ' ';
+                        cellAdUnitId.appendChild(button);
+                        cellAdUnitId.style.display = 'flex';
+                        cellAdUnitId.style.justifyContent = 'space-between';
+                        cellAdUnitId.style.alignItems = 'center';
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById('table-loader-container').style.display = 'none';
+                alert('An error occurred while retrieving ad units');
+            });
+    }
+    document.getElementById('apiToken').addEventListener('change', loadAdUnits);
+    loadAdUnits();
+</script>
+</body>
+</html>
